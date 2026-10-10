@@ -53,6 +53,27 @@ def test_did_two_by_two():
     assert did == pytest.approx(3.0, abs=0.15)
 
 
+def test_did_anticipation_inflates_pre_period_gap():
+    sim = cs.did_panel(
+        n_units=4_000,
+        n_periods=20,
+        treat_period=10,
+        effect=3.0,
+        anticipation_periods=3,
+        anticipation_effect=2.0,
+        noise=0.1,
+        seed=11,
+    )
+    d = sim.data
+    anticip = d[(d.period >= 7) & (d.period < 10)]
+    gap_anticip = anticip.loc[anticip.treated == 1, "y"].mean() - anticip.loc[anticip.treated == 0, "y"].mean()
+    early = d[d.period < 7]
+    gap_early = early.loc[early.treated == 1, "y"].mean() - early.loc[early.treated == 0, "y"].mean()
+    assert gap_anticip - gap_early == pytest.approx(2.0, abs=0.1)
+    assert sim.truth["anticipation_effect"] == 2.0
+    assert sim.meta["anticipation_start"] == 7
+
+
 def test_its_shapes_and_truth():
     sim = cs.its_series(seed=6)
     assert len(sim.data) == 400

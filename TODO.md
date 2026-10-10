@@ -5,10 +5,6 @@ concrete `causalsim` library features with a unit test apiece. Each item is
 implemented test-first: a failing test is written against the not-yet-existing
 behavior, then the minimal implementation is added to make it pass.
 
-- [ ] **DiD anticipation effects** — add an `anticipation` parameter to
-  `did_panel()` so treated units start responding before `treat_period`,
-  modeling the case where units act on a treatment they can foresee.
-
 - [ ] **Latent confounder for causal discovery** — add a `latent` option to
   `linear_gaussian_sem()` that marginalizes out one node, inducing a spurious
   dependence between its children that is invisible to a graph built only from

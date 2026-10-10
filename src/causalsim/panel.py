@@ -16,14 +16,21 @@ def did_panel(
     treated_share: float = 0.5,
     selection_on_level: float = 2.0,
     trend_violation: float = 0.0,
+    anticipation_periods: int = 0,
+    anticipation_effect: float = 0.0,
     noise: float = 1.0,
     seed: int | None = 0,
 ) -> SimResult:
     """Long-format panel: y_it = a_i + l_t + effect*D_it + (trend_violation * t * treated_i) + e_it.
 
-    selection_on_level : treated units have higher baseline levels. DiD handles this
+    selection_on_level  : treated units have higher baseline levels. DiD handles this
                          (unit fixed effects absorb it); a naive post-period comparison does not.
-    trend_violation    : treated units follow a different trend -> parallel trends broken.
+    trend_violation     : treated units follow a different trend -> parallel trends broken.
+    anticipation_periods: treated units start responding this many periods before
+                         `treat_period`, even though `post`/`D` only flip at `treat_period`.
+    anticipation_effect : size of that pre-treatment response. Models units that
+                         foresee the treatment and act on it early, which inflates
+                         the "pre" period a naive 2x2 or event-study DiD relies on.
     """
     rng = rng_from(seed)
     treated = (rng.random(n_units) < treated_share).astype(int)
@@ -35,15 +42,22 @@ def did_panel(
     tr = treated[unit]
     post = (period >= treat_period).astype(int)
     D = tr * post
+    anticipation_start = treat_period - anticipation_periods
+    anticipating = tr * (period >= anticipation_start) * (period < treat_period)
     y = (
         a[unit]
         + lam[period]
         + effect * D
+        + anticipation_effect * anticipating
         + trend_violation * period * tr
         + rng.normal(scale=noise, size=unit.size)
     )
     data = pd.DataFrame({"unit": unit, "period": period, "treated": tr, "post": post, "D": D, "y": y})
-    return SimResult(data=data, truth={"att": effect}, meta={"treat_period": treat_period})
+    return SimResult(
+        data=data,
+        truth={"att": effect, "anticipation_effect": anticipation_effect},
+        meta={"treat_period": treat_period, "anticipation_start": anticipation_start},
+    )
 
 
 def its_series(

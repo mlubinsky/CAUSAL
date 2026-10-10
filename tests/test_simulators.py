@@ -150,6 +150,17 @@ def test_retail_pricing_reactive_price_follows_lagged_sales():
     assert sim.truth["reactive"] == 3.0
 
 
+def test_retail_pricing_instrument_violation_breaks_cost_exogeneity():
+    sim0 = cs.retail_pricing(n_days=3_000, instrument_violation=0.0, seed=40)
+    corr0 = np.corrcoef(sim0.data["cost_1"], sim0.hidden["demand_shock"])[0, 1]
+    assert abs(corr0) < 0.05
+
+    sim1 = cs.retail_pricing(n_days=3_000, instrument_violation=2.0, seed=40)
+    corr1 = np.corrcoef(sim1.data["cost_1"], sim1.hidden["demand_shock"])[0, 1]
+    assert corr1 > 0.3
+    assert sim1.truth["instrument_violation"] == 2.0
+
+
 def test_retail_pricing_columns():
     sim = cs.retail_pricing(n_days=100)
     assert list(sim.data.columns) == [

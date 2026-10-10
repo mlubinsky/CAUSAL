@@ -78,6 +78,7 @@ def retail_pricing(
     elasticities: np.ndarray | None = None,
     price_endogeneity: float = 0.4,
     reactive: float = 0.0,
+    instrument_violation: float = 0.0,
     start: str = "2024-01-01",
     seed: int | None = 42,
 ) -> SimResult:
@@ -88,7 +89,8 @@ def retail_pricing(
     - Weekly + yearly seasonality on traffic.
     - An unobserved, autocorrelated demand shock drives traffic, conversion,
       AND prices (price_endogeneity) -> naive regressions are biased.
-    - cost_k shifts price_k but not demand -> valid instruments.
+    - cost_k shifts price_k but not demand -> valid instruments, AS LONG AS
+      instrument_violation is 0.
     - truth["elasticities"][i, j] = d log E[purch_i] / d log price_j.
 
     reactive : feedback strength from YESTERDAY's purchases (relative to their
@@ -96,6 +98,10 @@ def retail_pricing(
                weak sales". This is endogeneity through the lagged outcome,
                distinct from price_endogeneity's contemporaneous demand-shock
                channel, and from cost, which stays a valid instrument either way.
+    instrument_violation : correlates cost with the hidden demand shock, breaking
+               the exclusion restriction that makes cost a valid instrument for
+               price (cost would then be associated with an unobserved driver of
+               purchases, not just with price).
     """
     rng = rng_from(seed)
     T = n_days
@@ -107,7 +113,7 @@ def retail_pricing(
     for i in range(1, T):
         demand[i] = 0.7 * demand[i - 1] + rng.normal(0, 0.08)
 
-    cost = rng.normal(0, 0.05, (T, 3))
+    cost = rng.normal(0, 0.05, (T, 3)) + instrument_violation * demand[:, None]
     base_price = np.log([4.0, 6.0, 9.0])
     price_noise = rng.normal(0, 0.03, (T, 3))
     log_visitors = 6.0 + season + 0.8 * demand + rng.normal(0, 0.05, T)
@@ -146,6 +152,11 @@ def retail_pricing(
     )
     return SimResult(
         data=data,
-        truth={"elasticities": E, "traffic_elasticity": 1.0, "reactive": reactive},
+        truth={
+            "elasticities": E,
+            "traffic_elasticity": 1.0,
+            "reactive": reactive,
+            "instrument_violation": instrument_violation,
+        },
         hidden=pd.DataFrame({"demand_shock": demand}),
     )

@@ -26,3 +26,8 @@ All notable changes to this project are recorded here, most recent first.
   lagged-deviation signal is clipped to keep the feedback loop stable at
   typical elasticity magnitudes. Covered by
   `test_retail_pricing_reactive_price_follows_lagged_sales`.
+- Added an `instrument_violation` parameter to `retail_pricing()`: correlates
+  `cost` with the hidden demand shock, breaking the exclusion restriction that
+  otherwise makes `cost` a valid instrument for `price`. Previously `cost` was
+  exogenous by construction with no way to break it. Covered by
+  `test_retail_pricing_instrument_violation_breaks_cost_exogeneity`.

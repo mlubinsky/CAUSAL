@@ -5,11 +5,6 @@ concrete `causalsim` library features with a unit test apiece. Each item is
 implemented test-first: a failing test is written against the not-yet-existing
 behavior, then the minimal implementation is added to make it pass.
 
-- [ ] **Instrument-validity violation in retail pricing** — add an
-  `instrument_violation` parameter to `retail_pricing()` that correlates
-  `cost` with the hidden demand shock, breaking the exclusion restriction
-  that makes `cost` a valid instrument for `price`.
-
 - [ ] **Reusable Monte Carlo benchmark utility** — add
   `causalsim.benchmark.monte_carlo(generator, estimator, n_runs, ...)`
   returning bias/RMSE/95%-CI coverage, generalizing the ad hoc Monte Carlo

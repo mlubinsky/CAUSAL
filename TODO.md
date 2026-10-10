@@ -5,11 +5,6 @@ concrete `causalsim` library features with a unit test apiece. Each item is
 implemented test-first: a failing test is written against the not-yet-existing
 behavior, then the minimal implementation is added to make it pass.
 
-- [ ] **Reactive retail pricing** — add a `reactive` parameter to
-  `retail_pricing()` so price responds to *lagged* purchases (a feedback/
-  endogeneity channel distinct from the existing contemporaneous
-  demand-shock confounding).
-
 - [ ] **Instrument-validity violation in retail pricing** — add an
   `instrument_violation` parameter to `retail_pricing()` that correlates
   `cost` with the hidden demand shock, breaking the exclusion restriction

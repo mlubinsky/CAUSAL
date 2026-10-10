@@ -132,6 +132,24 @@ def test_random_dag_is_acyclic():
     assert sim.truth["adjacency"].sum() == len(edges)
 
 
+def test_retail_pricing_reactive_price_follows_lagged_sales():
+    sim = cs.retail_pricing(n_days=2_000, reactive=3.0, price_endogeneity=0.0, seed=30)
+    d = sim.data
+    nominal = d["visitors"] * 0.05  # product 1's no-shock expected purchase rate
+    dev_lag = (np.log(d["purch_1"] + 1) - np.log(nominal + 1)).shift(1)
+    log_price = np.log(d["price_1"])
+    corr = np.corrcoef(dev_lag.iloc[1:], log_price.iloc[1:])[0, 1]
+    assert corr > 0.1  # weak sales yesterday -> lower price today
+
+    sim0 = cs.retail_pricing(n_days=2_000, reactive=0.0, price_endogeneity=0.0, seed=30)
+    d0 = sim0.data
+    dev_lag0 = (np.log(d0["purch_1"] + 1) - np.log(nominal + 1)).shift(1)
+    log_price0 = np.log(d0["price_1"])
+    corr0 = np.corrcoef(dev_lag0.iloc[1:], log_price0.iloc[1:])[0, 1]
+    assert abs(corr0) < 0.1
+    assert sim.truth["reactive"] == 3.0
+
+
 def test_retail_pricing_columns():
     sim = cs.retail_pricing(n_days=100)
     assert list(sim.data.columns) == [

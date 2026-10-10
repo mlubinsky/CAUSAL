@@ -77,6 +77,7 @@ def retail_pricing(
     n_days: int = 730,
     elasticities: np.ndarray | None = None,
     price_endogeneity: float = 0.4,
+    reactive: float = 0.0,
     start: str = "2024-01-01",
     seed: int | None = 42,
 ) -> SimResult:
@@ -89,6 +90,12 @@ def retail_pricing(
       AND prices (price_endogeneity) -> naive regressions are biased.
     - cost_k shifts price_k but not demand -> valid instruments.
     - truth["elasticities"][i, j] = d log E[purch_i] / d log price_j.
+
+    reactive : feedback strength from YESTERDAY's purchases (relative to their
+               nominal, no-shock rate) to TODAY's log price -- "mark down after
+               weak sales". This is endogeneity through the lagged outcome,
+               distinct from price_endogeneity's contemporaneous demand-shock
+               channel, and from cost, which stays a valid instrument either way.
     """
     rng = rng_from(seed)
     T = n_days
@@ -101,13 +108,10 @@ def retail_pricing(
         demand[i] = 0.7 * demand[i - 1] + rng.normal(0, 0.08)
 
     cost = rng.normal(0, 0.05, (T, 3))
-    log_p = (
-        np.log([4.0, 6.0, 9.0])
-        + cost
-        + price_endogeneity * demand[:, None]
-        + rng.normal(0, 0.03, (T, 3))
-    )
+    base_price = np.log([4.0, 6.0, 9.0])
+    price_noise = rng.normal(0, 0.03, (T, 3))
     log_visitors = 6.0 + season + 0.8 * demand + rng.normal(0, 0.05, T)
+    visitors = np.exp(log_visitors)
 
     E = (
         np.array([[-1.8, 0.5, 0.1], [0.4, -1.2, 0.0], [0.1, 0.0, -0.9]])
@@ -115,13 +119,26 @@ def retail_pricing(
         else np.asarray(elasticities)
     )
     base = np.log([0.05, 0.03, 0.02])
-    rate = np.exp(base + (log_p - np.log([4.0, 6.0, 9.0])) @ E.T + 0.5 * demand[:, None])
-    purch = rng.poisson(np.exp(log_visitors)[:, None] * rate)
+
+    if reactive == 0.0:
+        log_p = base_price + cost + price_endogeneity * demand[:, None] + price_noise
+        rate = np.exp(base + (log_p - base_price) @ E.T + 0.5 * demand[:, None])
+        purch = rng.poisson(visitors[:, None] * rate)
+    else:
+        nominal = visitors[:, None] * np.exp(base)
+        log_p = np.zeros((T, 3))
+        purch = np.zeros((T, 3), dtype=int)
+        dev_lag = np.zeros(3)
+        for i in range(T):
+            log_p[i] = base_price + cost[i] + price_endogeneity * demand[i] + reactive * dev_lag + price_noise[i]
+            rate_i = np.exp(base + (log_p[i] - base_price) @ E.T + 0.5 * demand[i])
+            purch[i] = rng.poisson(visitors[i] * rate_i)
+            dev_lag = np.clip(np.log(purch[i] + 1) - np.log(nominal[i] + 1), -1.0, 1.0)
 
     data = pd.DataFrame(
         {
             "date": pd.date_range(start, periods=T, freq="D"),
-            "visitors": np.round(np.exp(log_visitors)).astype(int),
+            "visitors": np.round(visitors).astype(int),
             **{f"purch_{k+1}": purch[:, k] for k in range(3)},
             **{f"price_{k+1}": np.exp(log_p[:, k]).round(2) for k in range(3)},
             **{f"cost_{k+1}": cost[:, k] for k in range(3)},
@@ -129,6 +146,6 @@ def retail_pricing(
     )
     return SimResult(
         data=data,
-        truth={"elasticities": E, "traffic_elasticity": 1.0},
+        truth={"elasticities": E, "traffic_elasticity": 1.0, "reactive": reactive},
         hidden=pd.DataFrame({"demand_shock": demand}),
     )

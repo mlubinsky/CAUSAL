@@ -19,3 +19,10 @@ All notable changes to this project are recorded here, most recent first.
   coefficient. Demonstrates that a mistimed intervention date biases the
   estimate, and that ignoring AR(1) noise understates its uncertainty.
   Covered by `tests/test_estimators.py`.
+- Added a `reactive` parameter to `retail_pricing()`: price now responds to
+  yesterday's purchases relative to their nominal rate ("mark down after weak
+  sales"), a feedback/endogeneity channel through the lagged outcome, distinct
+  from `price_endogeneity`'s contemporaneous demand-shock channel. The
+  lagged-deviation signal is clipped to keep the feedback loop stable at
+  typical elasticity magnitudes. Covered by
+  `test_retail_pricing_reactive_price_follows_lagged_sales`.

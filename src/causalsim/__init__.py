@@ -9,7 +9,7 @@ Every simulator returns a SimResult with:
 from .core import SimResult
 from .cross_section import confounded_binary, iv_data, plr_nonlinear
 from .dag import EXAMPLE_EDGES, linear_gaussian_sem, random_dag
-from .panel import did_panel, its_series, synthetic_control_panel
+from .panel import did_panel, estimate_its, its_series, synthetic_control_panel
 from .timeseries import retail_pricing, var_system
 
 __all__ = [
@@ -19,6 +19,7 @@ __all__ = [
     "plr_nonlinear",
     "did_panel",
     "its_series",
+    "estimate_its",
     "synthetic_control_panel",
     "var_system",
     "retail_pricing",

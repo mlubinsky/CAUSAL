@@ -97,6 +97,48 @@ def its_series(
     )
 
 
+def estimate_its(data: pd.DataFrame, t0: int, hac_lags: int = 10) -> dict:
+    """OLS fit of an interrupted-time-series model from `its_series()` output.
+
+        y_t = b0 + b1*t + b2*post_t + b3*(t - t0)*post_t + e_t
+
+    Returns the level-change estimate (b2) and slope-change estimate (b3), each
+    with an iid-OLS standard error and a Newey-West (HAC, Bartlett kernel)
+    standard error. Two failure modes this surfaces:
+
+    - passing the wrong `t0` biases the level-change estimate itself;
+    - ignoring autocorrelation (comparing se_ols to se_hac) understates how
+      uncertain the estimate really is when the noise is AR(1).
+    """
+    y = data["y"].to_numpy(dtype=float)
+    n = len(y)
+    t = np.arange(n, dtype=float)
+    post = (t >= t0).astype(float)
+    X = np.column_stack([np.ones(n), t, post, (t - t0) * post])
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    resid = y - X @ beta
+    k = X.shape[1]
+    XtX_inv = np.linalg.inv(X.T @ X)
+
+    sigma2 = np.sum(resid**2) / (n - k)
+    se_ols = np.sqrt(np.diag(sigma2 * XtX_inv))
+
+    Xe = X * resid[:, None]
+    S = Xe.T @ Xe
+    for lag in range(1, hac_lags + 1):
+        w = 1 - lag / (hac_lags + 1)
+        gamma = Xe[lag:].T @ Xe[:-lag]
+        S += w * (gamma + gamma.T)
+    se_hac = np.sqrt(np.diag(XtX_inv @ S @ XtX_inv))
+
+    return {
+        "level_change": beta[2],
+        "slope_change": beta[3],
+        "se_ols": se_ols[2],
+        "se_hac": se_hac[2],
+    }
+
+
 def synthetic_control_panel(
     n_donors: int = 20,
     n_periods: int = 60,

@@ -5,12 +5,6 @@ concrete `causalsim` library features with a unit test apiece. Each item is
 implemented test-first: a failing test is written against the not-yet-existing
 behavior, then the minimal implementation is added to make it pass.
 
-- [ ] **ITS intervention-timing / autocorrelation sensitivity** — add an
-  `estimate_its()` helper to `causalsim` that fits the interrupted-time-series
-  model from `its_series()` and demonstrate (via test) that (a) assuming the
-  wrong intervention date biases the level-change estimate, and (b) ignoring
-  AR(1) noise when computing standard errors understates them.
-
 - [ ] **Reactive retail pricing** — add a `reactive` parameter to
   `retail_pricing()` so price responds to *lagged* purchases (a feedback/
   endogeneity channel distinct from the existing contemporaneous

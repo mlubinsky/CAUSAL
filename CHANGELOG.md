@@ -14,3 +14,8 @@ All notable changes to this project are recorded here, most recent first.
   spuriously correlated with no edge between them, violating the
   causal-sufficiency assumption PC relies on. Covered by
   `test_latent_confounder_induces_spurious_association`.
+- Added `estimate_its()`: an OLS fit of the interrupted-time-series model with
+  both an iid and a Newey-West (HAC) standard error for the level-change
+  coefficient. Demonstrates that a mistimed intervention date biases the
+  estimate, and that ignoring AR(1) noise understates its uncertainty.
+  Covered by `tests/test_estimators.py`.

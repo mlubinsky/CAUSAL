@@ -31,6 +31,12 @@ def _diff_in_means(data: pd.DataFrame) -> tuple[float, float]:
     return est, se
 
 
+def test_estimate_elasticity_matrix_recovers_truth_under_exogenous_prices():
+    sim = cs.retail_pricing(n_days=20_000, price_endogeneity=0.0, seed=50)
+    est = cs.estimate_elasticity_matrix(sim.data)
+    np.testing.assert_allclose(est, sim.truth["elasticities"], atol=0.15)
+
+
 def test_monte_carlo_recovers_bias_and_coverage():
     result = cs.monte_carlo(
         generator=lambda seed: cs.confounded_binary(n=2_000, ate=2.0, confounding=0.0, seed=seed),

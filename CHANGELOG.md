@@ -42,3 +42,8 @@ All notable changes to this project are recorded here, most recent first.
   which notebook 09 only gestured at informally. Covered by
   `test_backdoor_adjustment_sets_confounder` and
   `test_backdoor_adjustment_sets_collider_needs_no_adjustment`.
+- Added `causalsim.estimate_elasticity_matrix(data)`: a log-log OLS fit
+  recovering the full 3x3 own- and cross-price elasticity matrix from
+  `retail_pricing()` output, rather than the single own-price term each
+  notebook currently pulls out in isolation. Covered by
+  `test_estimate_elasticity_matrix_recovers_truth_under_exogenous_prices`.

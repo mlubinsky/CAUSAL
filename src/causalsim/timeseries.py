@@ -73,6 +73,26 @@ def _check_stationary(A: np.ndarray) -> None:
         raise ValueError(f"VAR is not stationary (spectral radius {rho:.3f} >= 1)")
 
 
+def estimate_elasticity_matrix(data: pd.DataFrame, n_products: int = 3) -> np.ndarray:
+    """Log-log OLS: log(purch_k + 1) ~ const + log(visitors) + log(price_1..n).
+
+    Recovers the full elasticity matrix E[k, j] = d log E[purch_k] / d log price_j
+    -- own- AND cross-price terms -- rather than the single own-price term each
+    notebook currently pulls out in isolation. Consistent when prices are
+    exogenous (price_endogeneity = reactive = instrument_violation = 0); biased
+    otherwise, like any naive regression on confounded data.
+    """
+    log_price = np.column_stack([np.log(data[f"price_{j+1}"]) for j in range(n_products)])
+    log_visitors = np.log(data["visitors"]).to_numpy(dtype=float)
+    X = np.column_stack([np.ones(len(data)), log_visitors, log_price])
+    E = np.zeros((n_products, n_products))
+    for k in range(n_products):
+        y = np.log1p(data[f"purch_{k+1}"].to_numpy(dtype=float))
+        beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+        E[k, :] = beta[2:]
+    return E
+
+
 def retail_pricing(
     n_days: int = 730,
     elasticities: np.ndarray | None = None,

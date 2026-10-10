@@ -11,7 +11,7 @@ from .core import SimResult
 from .cross_section import confounded_binary, iv_data, plr_nonlinear
 from .dag import EXAMPLE_EDGES, backdoor_adjustment_sets, linear_gaussian_sem, random_dag
 from .panel import did_panel, estimate_its, its_series, synthetic_control_panel
-from .timeseries import retail_pricing, var_system
+from .timeseries import estimate_elasticity_matrix, retail_pricing, var_system
 
 __all__ = [
     "SimResult",
@@ -24,6 +24,7 @@ __all__ = [
     "synthetic_control_panel",
     "var_system",
     "retail_pricing",
+    "estimate_elasticity_matrix",
     "linear_gaussian_sem",
     "random_dag",
     "EXAMPLE_EDGES",

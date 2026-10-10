@@ -6,6 +6,7 @@ Every simulator returns a SimResult with:
     .hidden  unobserved variables (never give these to an estimator)
 """
 
+from .benchmark import monte_carlo
 from .core import SimResult
 from .cross_section import confounded_binary, iv_data, plr_nonlinear
 from .dag import EXAMPLE_EDGES, linear_gaussian_sem, random_dag
@@ -26,4 +27,5 @@ __all__ = [
     "linear_gaussian_sem",
     "random_dag",
     "EXAMPLE_EDGES",
+    "monte_carlo",
 ]

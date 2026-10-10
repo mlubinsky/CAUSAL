@@ -5,11 +5,6 @@ concrete `causalsim` library features with a unit test apiece. Each item is
 implemented test-first: a failing test is written against the not-yet-existing
 behavior, then the minimal implementation is added to make it pass.
 
-- [ ] **Reusable Monte Carlo benchmark utility** — add
-  `causalsim.benchmark.monte_carlo(generator, estimator, n_runs, ...)`
-  returning bias/RMSE/95%-CI coverage, generalizing the ad hoc Monte Carlo
-  loops already duplicated across notebooks 01/03/05.
-
 - [ ] **Backdoor adjustment-set identification** — add
   `causalsim.dag.backdoor_adjustment_sets(edges, treatment, outcome)`
   implementing the backdoor criterion over a DAG, tested against the

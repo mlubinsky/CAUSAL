@@ -31,3 +31,7 @@ All notable changes to this project are recorded here, most recent first.
   otherwise makes `cost` a valid instrument for `price`. Previously `cost` was
   exogenous by construction with no way to break it. Covered by
   `test_retail_pricing_instrument_violation_breaks_cost_exogeneity`.
+- Added `causalsim.monte_carlo(generator, estimator, n_runs, ...)`: a reusable
+  Monte Carlo evaluator returning bias, RMSE, 95%-CI coverage and mean SE,
+  generalizing the ad hoc Monte Carlo loops duplicated across notebooks
+  01/03/05. Covered by `test_monte_carlo_recovers_bias_and_coverage`.

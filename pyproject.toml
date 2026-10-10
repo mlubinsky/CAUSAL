@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "causalsim"
+version = "0.1.0"
+description = "Simulators with known ground truth for learning causal inference from scratch"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

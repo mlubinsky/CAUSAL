@@ -5,11 +5,6 @@ concrete `causalsim` library features with a unit test apiece. Each item is
 implemented test-first: a failing test is written against the not-yet-existing
 behavior, then the minimal implementation is added to make it pass.
 
-- [ ] **Latent confounder for causal discovery** — add a `latent` option to
-  `linear_gaussian_sem()` that marginalizes out one node, inducing a spurious
-  dependence between its children that is invisible to a graph built only from
-  the DAG's explicit edges (breaks PC's causal-sufficiency assumption).
-
 - [ ] **ITS intervention-timing / autocorrelation sensitivity** — add an
   `estimate_its()` helper to `causalsim` that fits the interrupted-time-series
   model from `its_series()` and demonstrate (via test) that (a) assuming the

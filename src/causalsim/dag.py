@@ -20,10 +20,16 @@ def linear_gaussian_sem(
     weight_range: tuple[float, float] = (0.5, 1.5),
     noise: float = 1.0,
     seed: int | None = 0,
+    latent: str | None = None,
 ) -> SimResult:
     """Sample from X_j = sum_{i in pa(j)} w_ij X_i + N(0, noise^2).
 
     truth["adjacency"][i, j] = 1 iff i -> j. truth["edges"] lists (parent, child).
+
+    latent : if given, this node is simulated as usual but then marginalized out
+             of `data` into `hidden`. Its children stay correlated through it even
+             though no edge connects them to each other -- the causal-sufficiency
+             assumption PC relies on (no unmeasured common causes) is violated.
     """
     rng = rng_from(seed)
     edges = EXAMPLE_EDGES if edges is None else edges
@@ -40,9 +46,15 @@ def linear_gaussian_sem(
         X[:, j] = X @ W[:, j] + rng.normal(scale=noise, size=n)
 
     adj = (W != 0).astype(int)
+    full = pd.DataFrame(X, columns=nodes)
+    data, hidden = full, None
+    if latent is not None:
+        hidden = full[[latent]].copy()
+        data = full.drop(columns=[latent])
     return SimResult(
-        data=pd.DataFrame(X, columns=nodes),
-        truth={"adjacency": adj, "edges": list(edges), "weights": W, "nodes": nodes},
+        data=data,
+        truth={"adjacency": adj, "edges": list(edges), "weights": W, "nodes": nodes, "latent": latent},
+        hidden=hidden,
     )
 
 

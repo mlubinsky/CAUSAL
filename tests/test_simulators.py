@@ -114,6 +114,18 @@ def test_sem_regression_recovers_weights():
     np.testing.assert_allclose(b[1:], W[parents, c], atol=0.03)
 
 
+def test_latent_confounder_induces_spurious_association():
+    sim = cs.linear_gaussian_sem(n=50_000, latent="C", seed=12)
+    d, hidden = sim.data, sim.hidden
+    assert "C" not in d.columns
+    assert "C" in hidden.columns
+    # D and F share the now-hidden parent C with no direct edge between them,
+    # but marginalizing C out leaves them spuriously correlated.
+    corr = np.corrcoef(d["D"], d["F"])[0, 1]
+    assert abs(corr) > 0.3
+    assert sim.truth["latent"] == "C"
+
+
 def test_random_dag_is_acyclic():
     edges = cs.random_dag(n_nodes=12, edge_prob=0.4, seed=10)
     sim = cs.linear_gaussian_sem(n=100, edges=edges, seed=10)  # raises on a cycle

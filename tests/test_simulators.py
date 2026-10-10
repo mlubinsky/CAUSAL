@@ -161,6 +161,18 @@ def test_retail_pricing_instrument_violation_breaks_cost_exogeneity():
     assert sim1.truth["instrument_violation"] == 2.0
 
 
+def test_backdoor_adjustment_sets_confounder():
+    edges = [("U", "X"), ("U", "Y"), ("X", "Y")]
+    sets = cs.backdoor_adjustment_sets(edges, treatment="X", outcome="Y")
+    assert sets == [{"U"}]
+
+
+def test_backdoor_adjustment_sets_collider_needs_no_adjustment():
+    edges = [("X", "C"), ("Y", "C")]
+    sets = cs.backdoor_adjustment_sets(edges, treatment="X", outcome="Y")
+    assert sets == [set()]
+
+
 def test_retail_pricing_columns():
     sim = cs.retail_pricing(n_days=100)
     assert list(sim.data.columns) == [

@@ -5,11 +5,6 @@ concrete `causalsim` library features with a unit test apiece. Each item is
 implemented test-first: a failing test is written against the not-yet-existing
 behavior, then the minimal implementation is added to make it pass.
 
-- [ ] **Backdoor adjustment-set identification** — add
-  `causalsim.dag.backdoor_adjustment_sets(edges, treatment, outcome)`
-  implementing the backdoor criterion over a DAG, tested against the
-  collider/chain/fork structure in `EXAMPLE_EDGES`.
-
 - [ ] **Full cross-elasticity matrix recovery** — add
   `causalsim.timeseries.estimate_elasticity_matrix(data)` that fits a
   log-log regression of each product's purchases on all three products'

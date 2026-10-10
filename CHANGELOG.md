@@ -35,3 +35,10 @@ All notable changes to this project are recorded here, most recent first.
   Monte Carlo evaluator returning bias, RMSE, 95%-CI coverage and mean SE,
   generalizing the ad hoc Monte Carlo loops duplicated across notebooks
   01/03/05. Covered by `test_monte_carlo_recovers_bias_and_coverage`.
+- Added `causalsim.backdoor_adjustment_sets(edges, treatment, outcome)`:
+  enumerates every adjustment set satisfying Pearl's backdoor criterion over a
+  DAG, via moralized-ancestral-graph d-separation. Connects the statistical
+  estimators in notebooks 01-08 to the graph criterion that justifies them,
+  which notebook 09 only gestured at informally. Covered by
+  `test_backdoor_adjustment_sets_confounder` and
+  `test_backdoor_adjustment_sets_collider_needs_no_adjustment`.

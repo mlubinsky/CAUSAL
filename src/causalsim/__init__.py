@@ -9,7 +9,7 @@ Every simulator returns a SimResult with:
 from .benchmark import monte_carlo
 from .core import SimResult
 from .cross_section import confounded_binary, iv_data, plr_nonlinear
-from .dag import EXAMPLE_EDGES, linear_gaussian_sem, random_dag
+from .dag import EXAMPLE_EDGES, backdoor_adjustment_sets, linear_gaussian_sem, random_dag
 from .panel import did_panel, estimate_its, its_series, synthetic_control_panel
 from .timeseries import retail_pricing, var_system
 
@@ -27,5 +27,6 @@ __all__ = [
     "linear_gaussian_sem",
     "random_dag",
     "EXAMPLE_EDGES",
+    "backdoor_adjustment_sets",
     "monte_carlo",
 ]

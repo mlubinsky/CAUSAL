@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 import pandas as pd
 
@@ -73,6 +75,105 @@ def random_dag(
         for j in range(i + 1, n_nodes)
         if rng.random() < edge_prob
     ]
+
+
+def _parents_map(edges: list[tuple[str, str]]) -> dict[str, set[str]]:
+    parents: dict[str, set[str]] = {}
+    for a, b in edges:
+        parents.setdefault(b, set()).add(a)
+    return parents
+
+
+def _children_map(edges: list[tuple[str, str]]) -> dict[str, set[str]]:
+    children: dict[str, set[str]] = {}
+    for a, b in edges:
+        children.setdefault(a, set()).add(b)
+    return children
+
+
+def _ancestors(node: str, parents: dict[str, set[str]]) -> set[str]:
+    seen: set[str] = set()
+    stack = [node]
+    while stack:
+        n = stack.pop()
+        for p in parents.get(n, ()):
+            if p not in seen:
+                seen.add(p)
+                stack.append(p)
+    return seen
+
+
+def _descendants(node: str, children: dict[str, set[str]]) -> set[str]:
+    seen: set[str] = set()
+    stack = [node]
+    while stack:
+        n = stack.pop()
+        for c in children.get(n, ()):
+            if c not in seen:
+                seen.add(c)
+                stack.append(c)
+    return seen
+
+
+def _d_separated(edges: list[tuple[str, str]], x: str, y: str, z: set[str]) -> bool:
+    """Standard moralize-the-ancestral-graph test for d-separation of x, y given z."""
+    parents = _parents_map(edges)
+    relevant = {x, y} | z
+    anc = set(relevant)
+    for n in relevant:
+        anc |= _ancestors(n, parents)
+
+    sub_edges = [(a, b) for a, b in edges if a in anc and b in anc]
+    undirected: set[frozenset[str]] = {frozenset((a, b)) for a, b in sub_edges}
+    co_parents: dict[str, set[str]] = {}
+    for a, b in sub_edges:
+        co_parents.setdefault(b, set()).add(a)
+    for ps in co_parents.values():
+        for a, b in itertools.combinations(ps, 2):
+            undirected.add(frozenset((a, b)))
+
+    remaining = anc - z
+    adj: dict[str, set[str]] = {n: set() for n in remaining}
+    for pair in undirected:
+        a, b = tuple(pair)
+        if a in remaining and b in remaining:
+            adj[a].add(b)
+            adj[b].add(a)
+
+    seen = {x}
+    stack = [x]
+    while stack:
+        n = stack.pop()
+        for nb in adj.get(n, ()):
+            if nb not in seen:
+                seen.add(nb)
+                stack.append(nb)
+    return y not in seen
+
+
+def backdoor_adjustment_sets(
+    edges: list[tuple[str, str]], treatment: str, outcome: str
+) -> list[set[str]]:
+    """All sets Z satisfying the backdoor criterion for (treatment, outcome).
+
+    Z must (1) contain no descendant of `treatment`, and (2) block every backdoor
+    path (every path between treatment and outcome starting with an arrow into
+    treatment). Condition (2) is tested as d-separation of treatment and outcome,
+    given Z, in the graph with treatment's own outgoing edges removed -- the
+    standard reduction (Pearl, *Causality*, def. 3.3.1).
+    """
+    nodes = sorted({v for e in edges for v in e})
+    children = _children_map(edges)
+    desc = _descendants(treatment, children)
+    candidates = [n for n in nodes if n not in desc and n not in (treatment, outcome)]
+    edges_no_out = [(a, b) for a, b in edges if a != treatment]
+
+    valid = []
+    for size in range(len(candidates) + 1):
+        for combo in itertools.combinations(candidates, size):
+            if _d_separated(edges_no_out, treatment, outcome, set(combo)):
+                valid.append(set(combo))
+    return valid
 
 
 def _topological_order(W: np.ndarray) -> list[int]:
